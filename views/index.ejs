@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>圖片分割上傳</title>
+    <link href="https://cdn.bootcss.com/mdui/0.4.1/css/mdui.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/mdui/0.4.1/js/mdui.min.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
+  </head>
+  <body>
+    <div class="mdui-container">
+      <div class="mdui-row">
+        <div class="mdui-col-md-12 mdui-theme-accent-green">
+          <div>
+            <h2>圖片上傳：</h2>
+            <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" onclick="handleActiveFileInput()">
+              上傳
+            </button>
+            <ul id="progressListContainer" class="mdui-list">
+            </ul>
+          </div>
+          <div>
+            <input type="file" id="fileInput" style="display: none;" onchange="handleFileInputChange()">
+          </div>
+        </div>
+        <div class="mdui-col-md-12">
+          <h2>
+            圖片上傳結果：
+            <a href="" id="imgUrlLink" target="_blank"></a>
+          </h2>
+          <div id="imgShowContainer">
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    const fileInput = document.getElementById('fileInput')
+    const progressListContainer = document.getElementById('progressListContainer')
+
+    function handleActiveFileInput() {
+      fileInput.click()
+    }
+
+    function clearFileInput() {
+      fileInput.setAttribute('value', '')
+    }
+
+    function handleFileInputChange() {
+      const file = fileInput.files[0]
+      if (!file) {
+        return false
+      }
+
+      progressListContainer.innerHTML = ''
+      fileSliceUpload(file, handleXhrProgressCallback, handleXhrSuccessCallback)
+    }
+
+    function handleXhrProgressCallback(total, index, e) {
+      const liHtm = document.createElement('li')
+      liHtm.innerText = `正在上傳第 ${index + 1} 個分割檔，總共 ${total} 個`
+      progressListContainer.appendChild(liHtm)
+    }
+
+    function handleXhrSuccessCallback(data) {
+      const imgShowContainer = document.getElementById("imgShowContainer")
+      imgShowContainer.innerHTML = ''
+
+      if (!data.success) {
+        return alert(data.message)
+      }
+      const img = document.createElement('img')
+      img.style.width = '300px'
+      img.src = `uploads/${data.data.path}`
+      img.onload = () => {
+        const linkElem = document.getElementById('imgUrlLink')
+        linkElem.setAttribute('href', img.src)
+        linkElem.innerText = img.src
+        imgShowContainer.appendChild(img)
+      }
+    }
+
+    function handleXhrErrorCallback(err) {
+      console.log(err)
+    }
+
+    function fileSliceUpload(file, handleXhrProgressCallback, handleXhrSuccessCallback, handleXhrErrorCallback) {
+      const eachSize = 1024 * 1024 // 1MB
+      const blockCount = Math.ceil(file.size / eachSize)
+      const axiosArray = []
+      let ext = file.name.split('.')
+      ext = ext[ext.length - 1]
+
+      let random = Math.random().toString()
+      random = random.split('.')
+      random = random[random.length - 1]
+      let hash = Date.now() + random + file.lastModified // 實際使用時，應使用 UUID
+
+      for (let i = 0; i < blockCount; i++) {
+        let start = i * eachSize
+        let end = Math.min(file.size, start + eachSize)
+
+        // content-type 須為 multipart/form-data
+        const form = new FormData()
+        form.append('file', file.slice(start, end))
+        form.append('name', file.name)
+        form.append('total', blockCount)
+        form.append('ext', ext)
+        form.append('index', i)
+        form.append('size', file.size)
+        form.append('hash', hash)
+
+        const axiosOptions = {
+          onUploadProgress: (e) => {
+            handleXhrProgressCallback(blockCount, i, e)
+          }
+        }
+
+        axiosArray.push(axios.post('/upload_chunks', form, axiosOptions))
+      }
+
+      axios.all(axiosArray).then(() => {
+        const data = {
+          name: file.name,
+          total: blockCount,
+          ext,
+          hash
+        }
+
+        axios.post('/merge_chunks', data).then((res) => {
+          handleXhrSuccessCallback(res.data);
+          clearFileInput()
+        }).catch((err) => {
+          handleXhrErrorCallback(err);
+          clearFileInput()
+        })
+      })
+    }
+  </script>
+</html>
