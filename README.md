@@ -26,4 +26,4 @@ npm start
 ```
 
 ## 參考資料
-＊ [ttps://github.com/postbird/axios-express-chunk-upload](ttps://github.com/postbird/axios-express-chunk-upload)
+＊ [https://github.com/postbird/axios-express-chunk-upload](https://github.com/postbird/axios-express-chunk-upload)
