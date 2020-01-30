@@ -1,5 +1,5 @@
 ## Express Chunk Upload Example
-![Standard - JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/makee-workshop/Huayra/blob/master/CONTRIBUTING.md)
+![Standard - JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/s890506/Express-Chunk-Upload-Example/blob/master/CONTRIBUTING.md)
 
 基於 axios、express、multer 之檔案分割上傳範例。
 
