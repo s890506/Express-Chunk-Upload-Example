@@ -85,6 +85,28 @@ app.get('/uploads/:dir/:path', (req, res) => {
   res.type('png').sendFile(url)
 })
 
+// 查詢當前已存在之分割檔，用以支援續傳。目前前端尚未實作。
+app.get('/file/:hash/status', (req, res) => {
+  const chunkTmpDir = `${chunkBasePath}${req.params.hash}/`
+
+  try {
+    const currentIndex = fs.readdirSync(chunkTmpDir)
+    currentIndex.forEach((file, index) => {
+      currentIndex[index] = parseInt(file.split('-')[1])
+    })
+
+    res.json({
+      success: true,
+      currentIndex: currentIndex
+    })
+  } catch (_err) {
+    res.json({
+      success: false,
+      message: '檔案已上傳完成或者尚未上傳任何分割檔' 
+    })
+  }
+})
+
 app.listen(3000, function () {
   console.log('Server is running on port 3000')
 })
