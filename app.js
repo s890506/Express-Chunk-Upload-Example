@@ -80,7 +80,7 @@ app.post('/merge_chunks', (req, res) => {
   }
 })
 
-app.get('/uploads/:dir/:path', (req, res) => {
+app.get('/file/:dir/:path', (req, res) => {
   const url = path.resolve(__dirname, `${fileBasePath}/${req.params.dir}/${req.params.path}`)
   res.type('png').sendFile(url)
 })

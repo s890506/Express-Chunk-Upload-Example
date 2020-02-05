@@ -74,7 +74,7 @@
       }
       const img = document.createElement('img')
       img.style.width = '300px'
-      img.src = `uploads/${data.data.path}`
+      img.src = `file/${data.data.path}`
       img.onload = () => {
         const linkElem = document.getElementById('imgUrlLink')
         linkElem.setAttribute('href', img.src)
